@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs::File, io::Read};
+use std::collections::HashMap;
 
-const INPUT_FILE: &str = "C:\\Users\\awlod\\code\\aoco3\\adventofcode\\src\\y2024\\input\\day1.txt";
+const INPUT: &str = include_str!("input/day1.txt");
 
 fn distance(a: &mut Vec<i32>, b: &mut Vec<i32>) -> i32 {
     a.sort();
@@ -34,18 +34,11 @@ fn parse(input: &str, col1: &mut Vec<i32>, col2: &mut Vec<i32>) {
     }
 }
 
-fn parse_file(filename: &str, col1: &mut Vec<i32>, col2: &mut Vec<i32>) {
-    let mut fp = File::open(filename).expect("File {filename} not found");
-    let mut contents = String::new();
-    fp.read_to_string(&mut contents).unwrap();
-    parse(&contents, col1, col2);
-}
-
 pub fn run() -> (i32, i32) {
     let mut a: Vec<i32> = Vec::new();
     let mut b: Vec<i32> = Vec::new();
 
-    parse_file(INPUT_FILE, &mut a, &mut b);
+    parse(INPUT, &mut a, &mut b);
     let x = distance(&mut a, &mut b);
 
     let y = similarity(&mut a, &mut b);
@@ -54,7 +47,7 @@ pub fn run() -> (i32, i32) {
 
 #[cfg(test)]
 mod tests {
-    use crate::y2024::day1::{INPUT_FILE, distance, parse, parse_file, similarity};
+    use crate::y2024::day1::{INPUT, distance, parse, similarity};
 
     const TEST_INPUT: &str = "3   4
 4   3
@@ -86,7 +79,7 @@ mod tests {
         let mut a: Vec<i32> = Vec::new();
         let mut b: Vec<i32> = Vec::new();
 
-        parse_file(INPUT_FILE, &mut a, &mut b);
+        parse(INPUT, &mut a, &mut b);
         assert_eq!(1506483, distance(&mut a, &mut b));
     }
 
@@ -95,7 +88,7 @@ mod tests {
         let mut a: Vec<i32> = Vec::new();
         let mut b: Vec<i32> = Vec::new();
 
-        parse_file(INPUT_FILE, &mut a, &mut b);
+        parse(INPUT, &mut a, &mut b);
         assert_eq!(23126924, similarity(&mut a, &mut b));
     }
 }

@@ -1,8 +1,6 @@
-use std::{fs::File, io::Read};
-
 type Report = Vec<i32>;
 
-const INPUT_FILE: &str = "C:\\Users\\awlod\\code\\aoco3\\adventofcode\\src\\y2024\\input\\day2.txt";
+const INPUT: &str = include_str!("input/day2.txt");
 
 fn is_safe(report: &Report) -> bool {
     let differences = report
@@ -63,13 +61,6 @@ fn parse(input: &str) -> Vec<Report> {
     reports
 }
 
-fn parse_file(filename: &str) -> Vec<Report> {
-    let mut fp = File::open(filename).expect("File {filename} not found");
-    let mut contents = String::new();
-    fp.read_to_string(&mut contents).unwrap();
-    return parse(&contents);
-}
-
 fn parse_report(input: &str) -> Report {
     let mut report: Vec<i32> = Vec::new();
     report.extend(
@@ -81,7 +72,7 @@ fn parse_report(input: &str) -> Report {
 }
 
 pub fn run() -> (usize, usize) {
-    let reports = parse_file(INPUT_FILE);
+    let reports = parse(INPUT);
     return (
         count_safe(reports.iter()),
         count_safe_with_removal(reports.iter()),
@@ -93,8 +84,8 @@ mod test {
     use rstest::rstest;
 
     use crate::y2024::day2::{
-        INPUT_FILE, Report, count_safe, count_safe_with_removal, is_safe, is_safe_with_removal,
-        parse, parse_file, parse_report,
+        INPUT, Report, count_safe, count_safe_with_removal, is_safe, is_safe_with_removal, parse,
+        parse_report,
     };
 
     const TEST_INPUT: &str = "7 6 4 2 1
@@ -124,7 +115,7 @@ mod test {
 
     #[test]
     fn test_solution_part_1() {
-        let reports = parse_file(INPUT_FILE);
+        let reports = parse(INPUT);
         assert_eq!(356, count_safe(reports.iter()));
     }
 
@@ -148,7 +139,7 @@ mod test {
 
     #[test]
     fn test_solution_part_2() {
-        let reports = parse_file(INPUT_FILE);
+        let reports = parse(INPUT);
         assert_eq!(413, count_safe_with_removal(reports.iter()));
     }
 }
