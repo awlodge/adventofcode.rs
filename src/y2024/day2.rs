@@ -71,11 +71,11 @@ fn parse_report(input: &str) -> Report {
     report
 }
 
-pub fn run() -> (usize, usize) {
+pub fn run() -> (u64, u64) {
     let reports = parse(INPUT);
     return (
-        count_safe(reports.iter()),
-        count_safe_with_removal(reports.iter()),
+        count_safe(reports.iter()) as u64,
+        count_safe_with_removal(reports.iter()) as u64,
     );
 }
 

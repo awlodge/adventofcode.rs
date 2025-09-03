@@ -2,12 +2,12 @@ use std::collections::HashMap;
 
 const INPUT: &str = include_str!("input/day1.txt");
 
-fn distance(a: &mut Vec<i32>, b: &mut Vec<i32>) -> i32 {
+fn distance(a: &mut Vec<i32>, b: &mut Vec<i32>) -> u32 {
     a.sort();
     b.sort();
     a.iter()
         .enumerate()
-        .map(|(idx, x)| (x - b[idx]).abs())
+        .map(|(idx, x)| (x - b[idx]).abs() as u32)
         .sum()
 }
 
@@ -34,7 +34,7 @@ fn parse(input: &str, col1: &mut Vec<i32>, col2: &mut Vec<i32>) {
     }
 }
 
-pub fn run() -> (i32, i32) {
+pub fn run() -> (u64, u64) {
     let mut a: Vec<i32> = Vec::new();
     let mut b: Vec<i32> = Vec::new();
 
@@ -42,7 +42,7 @@ pub fn run() -> (i32, i32) {
     let x = distance(&mut a, &mut b);
 
     let y = similarity(&mut a, &mut b);
-    (x, y)
+    (x as u64, y as u64)
 }
 
 #[cfg(test)]

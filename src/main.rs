@@ -1,13 +1,17 @@
 pub mod y2024;
 
 fn main() {
-    println!("2024 Day 1:");
-    let (x, y) = y2024::day1::run();
-    println!("  Part 1: {x}");
-    println!("  Part 2: {y}");
-
-    println!("2024 Day 2:");
-    let (x, y) = y2024::day2::run();
-    println!("  Part 1: {x}");
-    println!("  Part 2: {y}");
+    for day in 1..26 {
+        match y2024::run(day) {
+            Ok((x, y)) => {
+                println!("2024 Day {day}");
+                println!("  Part 1: {x}");
+                println!("  Part 2: {y}");
+            }
+            Err(_) => {
+                println!("No implementation found for 2024 Day {day}. Stopping");
+                break;
+            }
+        }
+    }
 }
