@@ -9,7 +9,10 @@ fn parse(input: &str) -> Grid<char> {
 
 pub fn run() -> (u64, u64) {
     let wordsearch = parse(INPUT);
-    (wordsearch.find_words(XMAS) as u64, 0)
+    (
+        wordsearch.find_words(XMAS) as u64,
+        wordsearch.find_x_mas() as u64,
+    )
 }
 
 impl Grid<char> {
@@ -53,6 +56,39 @@ impl Grid<char> {
 
         true
     }
+
+    fn find_x_mas(&self) -> u32 {
+        return self.walk().filter(|(p, _)| self.is_x_mas(p)).count() as u32;
+    }
+
+    fn is_x_mas(&self, p: &Point) -> bool {
+        if self.get(*p).is_none_or(|v| v != 'A') {
+            return false;
+        }
+
+        let corners = [
+            self.get(p + Direction::NorthWest.point()),
+            self.get(p + Direction::NorthEast.point()),
+            self.get(p + Direction::SouthEast.point()),
+            self.get(p + Direction::SouthWest.point()),
+        ];
+
+        if corners.iter().any(|v| v.is_none()) {
+            return false;
+        }
+
+        let corners = [
+            corners[0].unwrap(),
+            corners[1].unwrap(),
+            corners[2].unwrap(),
+            corners[3].unwrap(),
+        ];
+
+        return ((corners[0] == 'M' && corners[2] == 'S')
+            || (corners[0] == 'S' && corners[2] == 'M'))
+            && ((corners[1] == 'M' && corners[3] == 'S')
+                || (corners[1] == 'S' && corners[3] == 'M'));
+    }
 }
 
 #[cfg(test)]
@@ -80,5 +116,17 @@ MXMXAXMASX";
     fn test_solution_part_1() {
         let wordsearch = parse(INPUT);
         assert_eq!(2496, wordsearch.find_words(XMAS));
+    }
+
+    #[test]
+    fn test_find_x_mas() {
+        let wordsearch = parse(TEST_INPUT);
+        assert_eq!(9, wordsearch.find_x_mas());
+    }
+
+    #[test]
+    fn test_solution_part_2() {
+        let wordsearch = parse(INPUT);
+        assert_eq!(1967, wordsearch.find_x_mas());
     }
 }

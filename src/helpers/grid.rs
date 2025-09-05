@@ -25,11 +25,19 @@ impl Point {
 impl Add for Point {
     type Output = Self;
 
-    fn add(self, other: Self) -> Self {
+    fn add(self, rhs: Self) -> Self {
         Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
         }
+    }
+}
+
+impl Add for &Point {
+    type Output = Point;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        *self + *rhs
     }
 }
 
