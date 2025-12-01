@@ -1,41 +1,61 @@
+use std::str::FromStr;
+
+use crate::helpers::parse::parse_lines;
+
 const INPUT: &str = include_str!("input/day1.txt");
 
 pub fn run() -> (u64, u64) {
-    let rotations = parse(INPUT);
+    let rotations = parse_lines(INPUT).unwrap();
     (
         calculate_password(&rotations),
         calculate_password_secure(&rotations),
     )
 }
 
+#[derive(Debug)]
 enum Direction {
     Left,
     Right,
 }
 
+#[derive(Debug)]
 struct Rotation {
     direction: Direction,
     distance: u32,
     full_spins: u32,
 }
 
-impl Rotation {
-    fn from(input: &str) -> Self {
-        let direction = match &input[0..1] {
+#[derive(Debug, PartialEq, Eq)]
+enum ParseRotationError {
+    InvalidDirection,
+    UnparseableDistance,
+}
+
+impl FromStr for Rotation {
+    type Err = ParseRotationError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let direction = match &s[0..1] {
             "L" => Direction::Left,
             "R" => Direction::Right,
-            _ => panic!("Unexpected direction"),
+            _ => return Err(ParseRotationError::InvalidDirection),
         };
-        let full_distance: u32 = (&input[1..]).parse::<u32>().unwrap();
+        let full_distance: u32 = match (&s[1..]).parse::<u32>() {
+            Ok(r) => r,
+            Err(_) => return Err(ParseRotationError::UnparseableDistance),
+        };
         let full_spins = full_distance / 100;
         let distance = full_distance % 100;
-        Rotation {
+
+        Ok(Rotation {
             direction,
             distance,
             full_spins,
-        }
+        })
     }
+}
 
+impl Rotation {
     fn rotate(&self, start: u32) -> u32 {
         match &self.direction {
             Direction::Left => (start + (100 - self.distance)) % 100,
@@ -65,12 +85,6 @@ impl Rotation {
     }
 }
 
-fn parse(input: &str) -> Vec<Rotation> {
-    let mut rotations: Vec<Rotation> = Vec::new();
-    rotations.extend(input.split('\n').map(|x| Rotation::from(x.trim())));
-    rotations
-}
-
 fn calculate_password(rotations: &Vec<Rotation>) -> u64 {
     let mut pos: u32 = 50;
     let mut password: u64 = 0;
@@ -96,7 +110,7 @@ fn calculate_password_secure(rotations: &Vec<Rotation>) -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day1::{calculate_password, calculate_password_secure, parse, run};
+    use crate::y2025::day1::{calculate_password, calculate_password_secure, parse_lines, run};
 
     const TEST_INPUT: &str = "L68
 L30
@@ -111,13 +125,13 @@ L82";
 
     #[test]
     fn test_calculate_password() {
-        let rotations = parse(TEST_INPUT);
+        let rotations = parse_lines(TEST_INPUT).unwrap();
         assert_eq!(3, calculate_password(&rotations));
     }
 
     #[test]
     fn test_calculate_password_secure() {
-        let rotations = parse(TEST_INPUT);
+        let rotations = parse_lines(TEST_INPUT).unwrap();
         assert_eq!(6, calculate_password_secure(&rotations));
     }
 
