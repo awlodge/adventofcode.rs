@@ -7,8 +7,8 @@ const INPUT: &str = include_str!("input/day1.txt");
 pub fn run() -> (u64, u64) {
     let rotations: Vec<Rotation> = parse_lines(INPUT).collect();
     (
-        calculate_password(&rotations),
-        calculate_password_secure(&rotations),
+        calculate_password(rotations.iter()),
+        calculate_password_secure(rotations.iter()),
     )
 }
 
@@ -85,7 +85,7 @@ impl Rotation {
     }
 }
 
-fn calculate_password(rotations: &Vec<Rotation>) -> u64 {
+fn calculate_password<'a>(rotations: impl Iterator<Item = &'a Rotation>) -> u64 {
     let mut pos: u32 = 50;
     let mut password: u64 = 0;
     for r in rotations {
@@ -97,7 +97,7 @@ fn calculate_password(rotations: &Vec<Rotation>) -> u64 {
     password
 }
 
-fn calculate_password_secure(rotations: &Vec<Rotation>) -> u64 {
+fn calculate_password_secure<'a>(rotations: impl Iterator<Item = &'a Rotation>) -> u64 {
     let mut password: u64 = 0;
     let mut pos: u32 = 50;
     for r in rotations {
@@ -110,7 +110,9 @@ fn calculate_password_secure(rotations: &Vec<Rotation>) -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day1::{calculate_password, calculate_password_secure, parse_lines, run};
+    use crate::y2025::day1::{
+        Rotation, calculate_password, calculate_password_secure, parse_lines, run,
+    };
 
     const TEST_INPUT: &str = "L68
 L30
@@ -125,14 +127,14 @@ L82";
 
     #[test]
     fn test_calculate_password() {
-        let rotations = parse_lines(TEST_INPUT).collect();
-        assert_eq!(3, calculate_password(&rotations));
+        let rotations: Vec<Rotation> = parse_lines(TEST_INPUT).collect();
+        assert_eq!(3, calculate_password(rotations.iter()));
     }
 
     #[test]
     fn test_calculate_password_secure() {
-        let rotations = parse_lines(TEST_INPUT).collect();
-        assert_eq!(6, calculate_password_secure(&rotations));
+        let rotations: Vec<Rotation> = parse_lines(TEST_INPUT).collect();
+        assert_eq!(6, calculate_password_secure(rotations.iter()));
     }
 
     #[test]
