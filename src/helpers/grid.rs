@@ -111,8 +111,9 @@ impl<T: Copy> fmt::Display for Grid<T> {
 }
 
 #[derive(Debug)]
-enum GridError {
+pub enum GridError {
     MismatchedColumns,
+    PointNotInGrid,
 }
 
 impl<T: Copy> Grid<T> {
@@ -166,6 +167,33 @@ impl<T: Copy> Grid<T> {
                 (p, v)
             })
         })
+    }
+
+    pub fn update(&mut self, p: Point, v: T) -> Result<(), GridError> {
+        if !self.contains(p) {
+            return Err(GridError::PointNotInGrid);
+        }
+
+        let row_num: usize = p.y.try_into().unwrap();
+        let col_num: usize = p.x.try_into().unwrap();
+        self.grid[row_num][col_num] = v;
+        Ok(())
+    }
+
+    pub fn swap(&mut self, p: Point, q: Point) -> Result<(), GridError> {
+        let a = match self.get(p) {
+            Some(v) => v,
+            None => return Err(GridError::PointNotInGrid),
+        };
+
+        let b = match self.get(q) {
+            Some(v) => v,
+            None => return Err(GridError::PointNotInGrid),
+        };
+
+        self.update(p, b).unwrap();
+        self.update(q, a).unwrap();
+        Ok(())
     }
 }
 
