@@ -1,11 +1,11 @@
-use std::str::FromStr;
+use std::{path::Iter, str::FromStr};
 
 use crate::helpers::parse::parse_lines;
 
 const INPUT: &str = include_str!("input/day1.txt");
 
 pub fn run() -> (u64, u64) {
-    let rotations = parse_lines(INPUT).unwrap();
+    let rotations: Vec<Rotation> = parse_lines(INPUT).collect();
     (
         calculate_password(&rotations),
         calculate_password_secure(&rotations),
@@ -125,13 +125,13 @@ L82";
 
     #[test]
     fn test_calculate_password() {
-        let rotations = parse_lines(TEST_INPUT).unwrap();
+        let rotations = parse_lines(TEST_INPUT).collect();
         assert_eq!(3, calculate_password(&rotations));
     }
 
     #[test]
     fn test_calculate_password_secure() {
-        let rotations = parse_lines(TEST_INPUT).unwrap();
+        let rotations = parse_lines(TEST_INPUT).collect();
         assert_eq!(6, calculate_password_secure(&rotations));
     }
 
