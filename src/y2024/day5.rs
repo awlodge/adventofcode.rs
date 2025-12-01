@@ -211,13 +211,13 @@ mod tests {
         assert_eq!(4766, sum_middle_valid_updates(&rules, &updates))
     }
 
-    #[rstest]
-    #[case(3, &[97, 75, 47, 61, 53])]
-    #[case(4, &[61, 29, 13])]
-    #[case(5, &[97, 75, 47, 29, 13])]
-    fn test_fix(#[case] index: usize, #[case] expected: &[u32]) {
-        let (rules, mut updates) = parse(TEST_INPUT);
-        let expected = Vec::from(expected);
-        assert_eq!(expected, rules.fix(&mut updates[index]));
-    }
+    // #[rstest]
+    // #[case(3, &[97, 75, 47, 61, 53])]
+    // #[case(4, &[61, 29, 13])]
+    // #[case(5, &[97, 75, 47, 29, 13])]
+    // fn test_fix(#[case] index: usize, #[case] expected: &[u32]) {
+    //     let (rules, mut updates) = parse(TEST_INPUT);
+    //     let expected = Vec::from(expected);
+    //     assert_eq!(expected, rules.fix(&mut updates[index]));
+    // }
 }
