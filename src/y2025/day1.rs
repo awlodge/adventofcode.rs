@@ -1,4 +1,4 @@
-use std::{path::Iter, str::FromStr};
+use std::str::FromStr;
 
 use crate::helpers::parse::parse_lines;
 
