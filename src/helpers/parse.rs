@@ -1,7 +1,4 @@
-use std::{
-    fmt::Debug,
-    str::{FromStr, Split},
-};
+use std::{fmt::Debug, str::FromStr};
 
 pub fn parse_lines<T>(input: &str) -> impl Iterator<Item = T>
 where

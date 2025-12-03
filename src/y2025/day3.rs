@@ -1,5 +1,3 @@
-use core::num;
-
 const INPUT: &str = include_str!("input/day3.txt");
 const SAFE_NUM_BATTERIES: usize = 2;
 const UNSAFE_NUM_BATTERIES: usize = 12;
@@ -75,7 +73,8 @@ mod test {
     use rstest::rstest;
 
     use crate::y2025::day3::{
-        SAFE_NUM_BATTERIES, UNSAFE_NUM_BATTERIES, calculate_joltage, parse_bank, run, sum_joltage_safe, sum_joltage_unsafe
+        SAFE_NUM_BATTERIES, UNSAFE_NUM_BATTERIES, calculate_joltage, parse_bank, run,
+        sum_joltage_safe, sum_joltage_unsafe,
     };
 
     const TEST_INPUT: &str = "987654321111111
