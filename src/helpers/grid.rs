@@ -170,6 +170,13 @@ impl<T: Copy> Grid<T> {
         })
     }
 
+    pub fn iter_adjacent(&self, p: Point) -> impl Iterator<Item = (Point, T)> {
+        Direction::iter()
+            .map(move |d| (p + d, self.get(p + d)))
+            .filter(|(_, v)| v.is_some())
+            .map(|(q, v)| (q, v.unwrap()))
+    }
+
     pub fn update(&mut self, p: Point, v: T) -> Result<(), GridError> {
         if !self.contains(p) {
             return Err(GridError::PointNotInGrid);

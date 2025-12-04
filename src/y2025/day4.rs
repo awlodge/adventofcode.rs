@@ -1,4 +1,4 @@
-use crate::helpers::grid::{Direction, Grid, Point};
+use crate::helpers::grid::{Grid, Point};
 
 const INPUT: &str = include_str!("input/day4.txt");
 
@@ -18,7 +18,8 @@ trait PaperTrail {
     const ROLL: char = '@';
     fn iter_accessible_rolls(&self) -> impl Iterator<Item = Point>;
     fn count_accessible_rolls(&self) -> usize;
-    fn is_accessible(&self, p: Point) -> bool;
+    fn iter_adjacent_rolls(&self, p: Point) -> impl Iterator<Item = Point>;
+    fn is_accessible_roll(&self, p: Point) -> bool;
     fn is_roll(&self, p: Point) -> bool;
     fn remove_roll(&mut self, p: Point);
     fn remove_accessible_rolls(&mut self) -> usize;
@@ -27,7 +28,7 @@ trait PaperTrail {
 impl PaperTrail for Grid<char> {
     fn iter_accessible_rolls(&self) -> impl Iterator<Item = Point> {
         self.walk()
-            .filter(|(p, _)| self.is_roll(*p) && self.is_accessible(*p))
+            .filter(|(p, _)| self.is_accessible_roll(*p))
             .map(|(p, _)| p)
     }
 
@@ -35,8 +36,14 @@ impl PaperTrail for Grid<char> {
         self.iter_accessible_rolls().count()
     }
 
-    fn is_accessible(&self, p: Point) -> bool {
-        Direction::iter().filter(|d| self.is_roll(p + *d)).count() < 4
+    fn iter_adjacent_rolls(&self, p: Point) -> impl Iterator<Item = Point> {
+        self.iter_adjacent(p)
+            .filter(|(q, _)| self.is_roll(*q))
+            .map(|(q, _)| q)
+    }
+
+    fn is_accessible_roll(&self, p: Point) -> bool {
+        self.is_roll(p) && self.iter_adjacent_rolls(p).count() < 4
     }
 
     fn is_roll(&self, p: Point) -> bool {
