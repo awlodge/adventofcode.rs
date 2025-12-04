@@ -1,6 +1,7 @@
 use std::{
     fmt,
     ops::{Add, AddAssign},
+    str::FromStr,
 };
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -197,8 +198,10 @@ impl<T: Copy> Grid<T> {
     }
 }
 
-impl Grid<char> {
-    pub fn parse(input: &str) -> Self {
+impl FromStr for Grid<char> {
+    type Err = GridError;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         let mut rows: Vec<Vec<char>> = Vec::new();
         rows.extend(input.split('\n').map(|line| {
             let line = line.trim();
@@ -206,12 +209,14 @@ impl Grid<char> {
             row.extend(line.chars());
             row
         }));
-        return Grid::new(rows).expect("Failed to parse");
+        Grid::new(rows)
     }
 }
 
-impl Grid<u32> {
-    pub fn parse(input: &str) -> Self {
+impl FromStr for Grid<u32> {
+    type Err = GridError;
+
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
         let mut rows: Vec<Vec<u32>> = Vec::new();
         rows.extend(input.split('\n').map(|line| {
             let mut row: Vec<u32> = Vec::new();
@@ -221,6 +226,6 @@ impl Grid<u32> {
             );
             row
         }));
-        return Grid::new(rows).expect("Failed to parse");
+        Grid::new(rows)
     }
 }

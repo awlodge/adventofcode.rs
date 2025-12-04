@@ -4,7 +4,7 @@ const INPUT: &str = include_str!("input/day4.txt");
 const XMAS: &str = "XMAS";
 
 fn parse(input: &str) -> Grid<char> {
-    return Grid::<char>::parse(input);
+    input.parse().unwrap()
 }
 
 pub fn run() -> (u64, u64) {
