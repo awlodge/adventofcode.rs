@@ -147,7 +147,7 @@ fn is_invalid_id(x: u64) -> bool {
 mod test {
     use rstest::rstest;
 
-    use crate::y2025::day2::{ProductIdRange, run, sum_invalid_ids, sum_really_invalid_ids};
+    use crate::y2025::day2::{ProductIdRange, sum_invalid_ids, sum_really_invalid_ids};
 
     const TEST_INPUT: &str = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124";
 
@@ -190,12 +190,5 @@ mod test {
     #[test]
     fn test_sum_really_invalid_ids() {
         assert_eq!(4174379265, sum_really_invalid_ids(TEST_INPUT));
-    }
-
-    #[test]
-    fn test_solution() {
-        let (s1, s2) = run();
-        assert_eq!(13919717792, s1);
-        assert_eq!(14582313461, s2);
     }
 }

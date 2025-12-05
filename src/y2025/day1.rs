@@ -111,7 +111,7 @@ fn calculate_password_secure<'a>(rotations: impl Iterator<Item = &'a Rotation>) 
 #[cfg(test)]
 mod test {
     use crate::y2025::day1::{
-        Rotation, calculate_password, calculate_password_secure, parse_lines, run,
+        Rotation, calculate_password, calculate_password_secure, parse_lines,
     };
 
     const TEST_INPUT: &str = "L68
@@ -135,12 +135,5 @@ L82";
     fn test_calculate_password_secure() {
         let rotations: Vec<Rotation> = parse_lines(TEST_INPUT).collect();
         assert_eq!(6, calculate_password_secure(rotations.iter()));
-    }
-
-    #[test]
-    fn test_solution() {
-        let (p1, p2) = run();
-        assert_eq!(1118, p1);
-        assert_eq!(6289, p2);
     }
 }

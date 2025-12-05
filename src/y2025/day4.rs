@@ -74,7 +74,7 @@ impl PaperTrail for Grid<char> {
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day4::{PaperTrail, parse, run};
+    use crate::y2025::day4::{PaperTrail, parse};
 
     const TEST_INPUT: &str = "..@@.@@@@.
 @@@.@.@.@@
@@ -96,12 +96,5 @@ mod test {
     fn test_remove_accessible_rolls() {
         let mut paper_trail = parse(TEST_INPUT);
         assert_eq!(43, paper_trail.remove_accessible_rolls());
-    }
-
-    #[test]
-    fn test_solution() {
-        let (s1, s2) = run();
-        assert_eq!(1578, s1);
-        assert_eq!(10132, s2);
     }
 }

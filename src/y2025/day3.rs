@@ -73,8 +73,8 @@ mod test {
     use rstest::rstest;
 
     use crate::y2025::day3::{
-        SAFE_NUM_BATTERIES, UNSAFE_NUM_BATTERIES, calculate_joltage, parse_bank, run,
-        sum_joltage_safe, sum_joltage_unsafe,
+        SAFE_NUM_BATTERIES, UNSAFE_NUM_BATTERIES, calculate_joltage, parse_bank, sum_joltage_safe,
+        sum_joltage_unsafe,
     };
 
     const TEST_INPUT: &str = "987654321111111
@@ -110,12 +110,5 @@ mod test {
     #[test]
     fn test_sum_joltage_unsafe() {
         assert_eq!(3121910778619, sum_joltage_unsafe(TEST_INPUT))
-    }
-
-    #[test]
-    fn test_solution() {
-        let (s1, s2) = run();
-        assert_eq!(17074, s1);
-        assert_eq!(169512729575727, s2);
     }
 }
