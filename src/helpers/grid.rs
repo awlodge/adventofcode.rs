@@ -21,6 +21,22 @@ impl Point {
             y: y.try_into().unwrap(),
         }
     }
+
+    pub fn up(&self) -> Self {
+        self + Direction::point(&Direction::North)
+    }
+
+    pub fn down(&self) -> Self {
+        self + Direction::point(&Direction::South)
+    }
+
+    pub fn right(&self) -> Self {
+        self + Direction::point(&Direction::East)
+    }
+
+    pub fn left(&self) -> Self {
+        self + Direction::point(&Direction::West)
+    }
 }
 
 impl Add for Point {
@@ -161,12 +177,14 @@ impl<T: Copy> Grid<T> {
     }
 
     pub fn walk(&self) -> impl Iterator<Item = (Point, T)> {
-        (0..self.rows()).flat_map(move |r| {
-            (0..self.cols()).map(move |c| {
-                let p = Point::new(c, r);
-                let v = self.get(p).unwrap();
-                (p, v)
-            })
+        (0..self.rows()).flat_map(move |r| self.walk_row(r))
+    }
+
+    pub fn walk_row(&self, row: usize) -> impl Iterator<Item = (Point, T)> {
+        (0..self.cols()).map(move |c| {
+            let p = Point::new(c, row);
+            let v = self.get(p).unwrap();
+            (p, v)
         })
     }
 
@@ -211,7 +229,7 @@ impl FromStr for Grid<char> {
     fn from_str(input: &str) -> Result<Self, Self::Err> {
         let mut rows: Vec<Vec<char>> = Vec::new();
         rows.extend(input.split('\n').map(|line| {
-            let line = line.trim();
+            let line = line.trim_matches(|c| c == '\n' || c == '\r');
             let mut row: Vec<char> = Vec::new();
             row.extend(line.chars());
             row
