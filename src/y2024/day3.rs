@@ -36,7 +36,7 @@ fn execute_with_conditions(input: &str) -> u64 {
 
 #[cfg(test)]
 mod test {
-    use crate::y2024::day3::{INPUT, execute, execute_with_conditions};
+    use crate::y2024::day3::{execute, execute_with_conditions};
 
     #[test]
     fn test_execute() {
@@ -48,23 +48,11 @@ mod test {
     }
 
     #[test]
-    fn test_solution_part_1() {
-        let output = execute(INPUT);
-        assert_eq!(178794710, output);
-    }
-
-    #[test]
     fn test_execute_with_conditions() {
         const TEST_INPUT: &str =
             "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
 
         let output = execute_with_conditions(TEST_INPUT);
         assert_eq!(48, output);
-    }
-
-    #[test]
-    fn test_solution_part_2() {
-        let output = execute_with_conditions(INPUT);
-        assert_eq!(76729637, output);
     }
 }

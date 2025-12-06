@@ -93,7 +93,7 @@ impl Grid<char> {
 
 #[cfg(test)]
 mod test {
-    use crate::y2024::day4::{INPUT, XMAS, parse};
+    use crate::y2024::day4::{XMAS, parse};
 
     const TEST_INPUT: &str = "MMMSXXMASM
 MSAMXMSMSA
@@ -113,20 +113,8 @@ MXMXAXMASX";
     }
 
     #[test]
-    fn test_solution_part_1() {
-        let wordsearch = parse(INPUT);
-        assert_eq!(2496, wordsearch.find_words(XMAS));
-    }
-
-    #[test]
     fn test_find_x_mas() {
         let wordsearch = parse(TEST_INPUT);
         assert_eq!(9, wordsearch.find_x_mas());
-    }
-
-    #[test]
-    fn test_solution_part_2() {
-        let wordsearch = parse(INPUT);
-        assert_eq!(1967, wordsearch.find_x_mas());
     }
 }

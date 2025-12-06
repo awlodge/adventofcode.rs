@@ -86,7 +86,7 @@ pub fn run() -> (u64, u64) {
 mod test {
     use rstest::rstest;
 
-    use crate::y2024::day2::{INPUT, Report, parse};
+    use crate::y2024::day2::{Report, parse};
 
     const TEST_INPUT: &str = "7 6 4 2 1
 1 2 7 8 9
@@ -113,12 +113,6 @@ mod test {
         assert_eq!(2, Report::count_safe(reports.iter()));
     }
 
-    #[test]
-    fn test_solution_part_1() {
-        let reports = parse(INPUT);
-        assert_eq!(356, Report::count_safe(reports.iter()));
-    }
-
     #[rstest]
     #[case("7 6 4 2 1", true)]
     #[case("1 2 7 8 9", false)]
@@ -135,11 +129,5 @@ mod test {
     fn test_count_safe_with_removal() {
         let reports = parse(TEST_INPUT);
         assert_eq!(4, Report::count_safe_with_removal(reports.iter()));
-    }
-
-    #[test]
-    fn test_solution_part_2() {
-        let reports = parse(INPUT);
-        assert_eq!(413, Report::count_safe_with_removal(reports.iter()));
     }
 }

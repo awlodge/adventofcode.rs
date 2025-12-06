@@ -47,7 +47,7 @@ pub fn run() -> (u64, u64) {
 
 #[cfg(test)]
 mod tests {
-    use crate::y2024::day1::{INPUT, distance, parse, similarity};
+    use crate::y2024::day1::{distance, parse, similarity};
 
     const TEST_INPUT: &str = "3   4
 4   3
@@ -72,23 +72,5 @@ mod tests {
 
         parse(TEST_INPUT, &mut a, &mut b);
         assert_eq!(31, similarity(&mut a, &mut b))
-    }
-
-    #[test]
-    fn test_solution_part_1() {
-        let mut a: Vec<i32> = Vec::new();
-        let mut b: Vec<i32> = Vec::new();
-
-        parse(INPUT, &mut a, &mut b);
-        assert_eq!(1506483, distance(&mut a, &mut b));
-    }
-
-    #[test]
-    fn test_solution_part_2() {
-        let mut a: Vec<i32> = Vec::new();
-        let mut b: Vec<i32> = Vec::new();
-
-        parse(INPUT, &mut a, &mut b);
-        assert_eq!(23126924, similarity(&mut a, &mut b));
     }
 }

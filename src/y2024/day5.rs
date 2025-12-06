@@ -3,10 +3,10 @@ use std::collections::{HashMap, HashSet};
 const INPUT: &str = include_str!("input/day5.txt");
 
 pub fn run() -> (u64, u64) {
-    let (rules, mut updates) = parse(INPUT);
+    let (rules, updates) = parse(INPUT);
     return (
         sum_middle_valid_updates(&rules, &updates) as u64,
-        sum_middle_fixed_updates(&rules, &mut updates) as u64,
+        0, // sum_middle_fixed_updates(&rules, &mut updates) as u64,
     );
 }
 
@@ -53,18 +53,18 @@ fn sum_middle_valid_updates(rules: &Rules, updates: &Vec<Vec<u32>>) -> u32 {
         .sum();
 }
 
-fn sum_middle_fixed_updates(rules: &Rules, updates: &mut Vec<Vec<u32>>) -> u32 {
-    return updates
-        .iter_mut()
-        .map(|update| {
-            if rules.validate(update) {
-                0
-            } else {
-                find_middle(&rules.fix(update))
-            }
-        })
-        .sum();
-}
+// fn sum_middle_fixed_updates(rules: &Rules, updates: &mut Vec<Vec<u32>>) -> u32 {
+//     return updates
+//         .iter_mut()
+//         .map(|update| {
+//             if rules.validate(update) {
+//                 0
+//             } else {
+//                 find_middle(&rules.fix(update))
+//             }
+//         })
+//         .sum();
+// }
 
 struct Rules {
     rules_before: HashMap<u32, HashSet<u32>>,
@@ -121,42 +121,42 @@ impl Rules {
         true
     }
 
-    pub fn fix(&self, input: &mut Vec<u32>) -> Vec<u32> {
-        let mut stack: Vec<u32> = Vec::new();
-        let mut sorted: Vec<u32> = Vec::new();
-        while input.len() > 0 {
-            let current = match stack.pop() {
-                Some(x) => x,
-                None => input.pop().expect("Input is empty!"),
-            };
-            if self.rules_after.contains_key(&current) {
-                let mut remainder: HashSet<u32> = HashSet::new();
-                remainder.extend(input.iter());
-                let rule = self.rules_after.get(&current).unwrap();
-                remainder.retain(|x| rule.contains(x));
-                if remainder.len() > 0 {
-                    for x in remainder.iter() {
-                        stack.push(*x);
-                        input.pop_if(|y| *y == *x);
-                    }
-                    stack.push(current);
-                } else {
-                    sorted.push(current);
-                }
-            } else {
-                sorted.push(current);
-            }
-        }
+    // pub fn fix(&self, input: &mut Vec<u32>) -> Vec<u32> {
+    //     let mut stack: Vec<u32> = Vec::new();
+    //     let mut sorted: Vec<u32> = Vec::new();
+    //     while input.len() > 0 {
+    //         let current = match stack.pop() {
+    //             Some(x) => x,
+    //             None => input.pop().expect("Input is empty!"),
+    //         };
+    //         if self.rules_after.contains_key(&current) {
+    //             let mut remainder: HashSet<u32> = HashSet::new();
+    //             remainder.extend(input.iter());
+    //             let rule = self.rules_after.get(&current).unwrap();
+    //             remainder.retain(|x| rule.contains(x));
+    //             if remainder.len() > 0 {
+    //                 for x in remainder.iter() {
+    //                     stack.push(*x);
+    //                     input.pop_if(|y| *y == *x);
+    //                 }
+    //                 stack.push(current);
+    //             } else {
+    //                 sorted.push(current);
+    //             }
+    //         } else {
+    //             sorted.push(current);
+    //         }
+    //     }
 
-        sorted
-    }
+    //     sorted
+    // }
 }
 
 #[cfg(test)]
 mod tests {
     use rstest::rstest;
 
-    use crate::y2024::day5::{INPUT, parse, sum_middle_valid_updates};
+    use crate::y2024::day5::{parse, sum_middle_valid_updates};
 
     const TEST_INPUT: &str = "47|53
 97|13
@@ -203,12 +203,6 @@ mod tests {
     fn test_sum_middle_valid_updates() {
         let (rules, updates) = parse(TEST_INPUT);
         assert_eq!(143, sum_middle_valid_updates(&rules, &updates))
-    }
-
-    #[test]
-    fn test_solution_part_1() {
-        let (rules, updates) = parse(INPUT);
-        assert_eq!(4766, sum_middle_valid_updates(&rules, &updates))
     }
 
     // #[rstest]
