@@ -1,9 +1,9 @@
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use std::collections::{HashMap, HashSet};
 
-use crate::helpers::grid::{Grid, Point};
+use crate::helpers::{
+    grid::{Grid, Point},
+    hashmap::CountMap,
+};
 
 const INPUT: &str = include_str!("input/day7.txt");
 
@@ -79,10 +79,10 @@ impl TachyonManifold for Grid<char> {
                     None => break,
                 };
                 if v == '^' {
-                    insert_or_increment(&mut new_timelines, next.left(), *count);
-                    insert_or_increment(&mut new_timelines, next.right(), *count);
+                    new_timelines.insert_or_increment(next.left(), *count);
+                    new_timelines.insert_or_increment(next.right(), *count);
                 } else {
-                    insert_or_increment(&mut new_timelines, next, *count);
+                    new_timelines.insert_or_increment(next, *count);
                 }
             }
 
@@ -122,11 +122,6 @@ impl TachyonManifold for Grid<char> {
         // print!("{dbg_grid}");
         timelines.iter().map(|(_, v)| *v).sum()
     }
-}
-
-fn insert_or_increment<T: Hash + Eq>(hashmap: &mut HashMap<T, usize>, k: T, v: usize) {
-    let x = hashmap.entry(k).or_insert(0);
-    *x += v;
 }
 
 #[cfg(test)]
