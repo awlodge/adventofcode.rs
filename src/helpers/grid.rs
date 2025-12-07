@@ -1,10 +1,10 @@
 use std::{
-    fmt,
+    fmt::{self, Debug, Display},
     ops::{Add, AddAssign},
     str::FromStr,
 };
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Point {
     pub x: i64,
     pub y: i64,
@@ -116,14 +116,20 @@ impl Direction {
     }
 }
 
-#[derive(Debug)]
-pub struct Grid<T: Copy> {
+#[derive(Debug, Clone)]
+pub struct Grid<T: Copy + Debug + Display + PartialEq + Eq> {
     grid: Vec<Vec<T>>,
 }
 
-impl<T: Copy> fmt::Display for Grid<T> {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
+impl<T: Copy + Debug + Display + PartialEq + Eq> fmt::Display for Grid<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for row in &self.grid {
+            for v in row {
+                write!(f, "{v}")?;
+            }
+            write!(f, "\n")?;
+        }
+        Ok(())
     }
 }
 
@@ -133,7 +139,7 @@ pub enum GridError {
     PointNotInGrid,
 }
 
-impl<T: Copy> Grid<T> {
+impl<T: Copy + Debug + Display + PartialEq + Eq> Grid<T> {
     fn new(rows: Vec<Vec<T>>) -> Result<Self, GridError> {
         let col_num = match rows.get(0) {
             Some(r) => r.len(),
@@ -193,6 +199,13 @@ impl<T: Copy> Grid<T> {
             .map(move |d| (p + d, self.get(p + d)))
             .filter(|(_, v)| v.is_some())
             .map(|(q, v)| (q, v.unwrap()))
+    }
+
+    pub fn search(&self, val: T) -> Option<Point> {
+        match self.walk().filter(|(_, v)| *v == val).next() {
+            Some((p, _)) => Some(p),
+            None => None,
+        }
     }
 
     pub fn update(&mut self, p: Point, v: T) -> Result<(), GridError> {
