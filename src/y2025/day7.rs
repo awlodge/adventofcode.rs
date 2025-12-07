@@ -8,25 +8,24 @@ use crate::helpers::{
 const INPUT: &str = include_str!("input/day7.txt");
 
 pub fn run() -> (u64, u64) {
-    let manifold: Grid<char> = TachyonManifold::parse(INPUT);
+    let manifold = parse(INPUT);
     (
         manifold.count_beam_splits() as u64,
         manifold.count_quantum_timelines() as u64,
     )
 }
 
+fn parse(input: &str) -> impl TachyonManifold {
+    input.parse::<Grid<char>>().unwrap()
+}
+
 trait TachyonManifold {
-    fn parse(input: &str) -> Self;
     fn find_start(&self) -> Point;
     fn count_beam_splits(&self) -> usize;
     fn count_quantum_timelines(&self) -> usize;
 }
 
 impl TachyonManifold for Grid<char> {
-    fn parse(input: &str) -> Self {
-        input.parse().unwrap()
-    }
-
     fn find_start(&self) -> Point {
         self.search('S').unwrap()
     }
@@ -126,7 +125,7 @@ impl TachyonManifold for Grid<char> {
 
 #[cfg(test)]
 mod test {
-    use crate::{helpers::grid::Grid, y2025::day7::TachyonManifold};
+    use crate::y2025::day7::{TachyonManifold, parse};
 
     const TEST_INPUT: &str = ".......S.......
 ...............
@@ -147,13 +146,13 @@ mod test {
 
     #[test]
     fn test_count_beam_splits() {
-        let manifold: Grid<char> = TachyonManifold::parse(TEST_INPUT);
+        let manifold = parse(TEST_INPUT);
         assert_eq!(21, manifold.count_beam_splits());
     }
 
     #[test]
     fn test_count_quantum_timelines() {
-        let manifold: Grid<char> = TachyonManifold::parse(TEST_INPUT);
+        let manifold = parse(TEST_INPUT);
         assert_eq!(40, manifold.count_quantum_timelines());
     }
 }
