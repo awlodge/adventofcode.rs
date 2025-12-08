@@ -22,7 +22,7 @@ pub fn run() -> (u64, u64) {
     )
 }
 
-fn parse(inp: &str) -> impl Circuits {
+fn parse(inp: &str) -> impl JunctionBoxes {
     parse_lines(inp).collect::<Vec<JunctionBox>>()
 }
 
@@ -77,17 +77,17 @@ impl FromStr for JunctionBox {
     }
 }
 
-trait Circuits {
+trait JunctionBoxes {
     fn len(&self) -> usize;
     fn all_pairs(&self) -> Vec<Vec<&JunctionBox>>;
 }
 
 trait Connections {
     fn join_circuits(&self, num_circuits: usize) -> Vec<usize>;
-    fn join_all_circuits(&self, boxes: &impl Circuits) -> Option<(JunctionBox, JunctionBox)>;
+    fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)>;
 }
 
-impl Circuits for Vec<JunctionBox> {
+impl JunctionBoxes for Vec<JunctionBox> {
     fn len(&self) -> usize {
         self.len()
     }
@@ -151,7 +151,7 @@ impl Connections for Vec<Vec<&JunctionBox>> {
         circuit_lens
     }
 
-    fn join_all_circuits(&self, boxes: &impl Circuits) -> Option<(JunctionBox, JunctionBox)> {
+    fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)> {
         let mut pairs = self.iter();
         let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
         loop {
@@ -200,7 +200,7 @@ impl Connections for Vec<Vec<&JunctionBox>> {
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day8::{Circuits, Connections, JunctionBox, parse};
+    use crate::y2025::day8::{Connections, JunctionBox, JunctionBoxes, parse};
 
     const TEST_INPUT: &str = "162,817,812
 57,618,57
