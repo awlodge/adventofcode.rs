@@ -8,12 +8,17 @@ const INPUT: &str = include_str!("input/day8.txt");
 
 pub fn run() -> (u64, u64) {
     let circuits = parse(INPUT);
-    let circuit_counts = circuits.join_circuits(1000);
-    let last_join = circuits.join_all_circuits().unwrap();
+    let connections = circuits.all_pairs();
+    let last_join = connections.join_all_circuits(&circuits).unwrap();
 
     (
-        circuit_counts.iter().take(3).map(|c| *c as u64).product(),
-        (last_join.0.x * last_join.1.x).try_into().unwrap(),
+        connections
+            .join_circuits(1000)
+            .iter()
+            .take(3)
+            .map(|c| *c as u64)
+            .product(),
+        last_join.0.wall_distance(&last_join.1),
     )
 }
 
@@ -29,11 +34,14 @@ struct JunctionBox {
 }
 
 impl JunctionBox {
-    fn distance(&self, other: &JunctionBox) -> f64 {
-        f64::sqrt(
-            ((self.x - other.x).pow(2) + (self.y - other.y).pow(2) + (self.z - other.z).pow(2))
-                as f64,
-        )
+    fn distance(&self, other: &JunctionBox) -> u64 {
+        ((self.x - other.x).pow(2) + (self.y - other.y).pow(2) + (self.z - other.z).pow(2))
+            .try_into()
+            .unwrap()
+    }
+
+    fn wall_distance(&self, other: &JunctionBox) -> u64 {
+        (self.x * other.x).try_into().unwrap()
     }
 
     fn from_slice(vals: &[i64]) -> Result<Self, JunctionBoxError> {
@@ -70,22 +78,30 @@ impl FromStr for JunctionBox {
 }
 
 trait Circuits {
+    fn len(&self) -> usize;
+    fn all_pairs(&self) -> Vec<Vec<&JunctionBox>>;
+}
+
+trait Connections {
     fn join_circuits(&self, num_circuits: usize) -> Vec<usize>;
-    fn join_all_circuits(&self) -> Option<(JunctionBox, JunctionBox)>;
+    fn join_all_circuits(&self, boxes: &impl Circuits) -> Option<(JunctionBox, JunctionBox)>;
 }
 
 impl Circuits for Vec<JunctionBox> {
-    fn join_circuits(&self, num_circuits: usize) -> Vec<usize> {
+    fn len(&self) -> usize {
+        self.len()
+    }
+
+    fn all_pairs(&self) -> Vec<Vec<&JunctionBox>> {
         let mut pairs: Vec<Vec<&JunctionBox>> = self.iter().combinations(2).collect();
-        pairs.sort_by(|p, q| {
-            p[0].distance(&p[1])
-                .partial_cmp(&(q[0].distance(&q[1])))
-                .unwrap()
-        });
-        // for p in &pairs {
-        //     println!("{p:?} distance {}", p[0].distance(&p[1]));
-        // }
-        let mut pairs = pairs.iter();
+        pairs.sort_by_key(|p| p[0].distance(&p[1]));
+        pairs
+    }
+}
+
+impl Connections for Vec<Vec<&JunctionBox>> {
+    fn join_circuits(&self, num_circuits: usize) -> Vec<usize> {
+        let mut pairs = self.iter();
         let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
         let mut num_connections = 0;
         while num_connections < num_circuits {
@@ -135,17 +151,8 @@ impl Circuits for Vec<JunctionBox> {
         circuit_lens
     }
 
-    fn join_all_circuits(&self) -> Option<(JunctionBox, JunctionBox)> {
-        let mut pairs: Vec<Vec<&JunctionBox>> = self.iter().combinations(2).collect();
-        pairs.sort_by(|p, q| {
-            p[0].distance(&p[1])
-                .partial_cmp(&(q[0].distance(&q[1])))
-                .unwrap()
-        });
-        // for p in &pairs {
-        //     println!("{p:?} distance {}", p[0].distance(&p[1]));
-        // }
-        let mut pairs = pairs.iter();
+    fn join_all_circuits(&self, boxes: &impl Circuits) -> Option<(JunctionBox, JunctionBox)> {
+        let mut pairs = self.iter();
         let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
         loop {
             // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
@@ -184,7 +191,7 @@ impl Circuits for Vec<JunctionBox> {
                 }
             }
 
-            if circuits.len() == 1 && circuits[0].len() == self.len() {
+            if circuits.len() == 1 && circuits[0].len() == boxes.len() {
                 return Some((*pair[0], *pair[1]));
             }
         }
@@ -193,7 +200,7 @@ impl Circuits for Vec<JunctionBox> {
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day8::{Circuits, JunctionBox, parse};
+    use crate::y2025::day8::{Circuits, Connections, JunctionBox, parse};
 
     const TEST_INPUT: &str = "162,817,812
 57,618,57
@@ -220,21 +227,25 @@ mod test {
     fn test_distance() {
         let p = JunctionBox::from_slice(&[162, 817, 812]).unwrap();
         let q = JunctionBox::from_slice(&[431, 825, 988]).unwrap();
-        assert!(p.distance(&q) < 373.41132);
+        assert_eq!(103401, p.distance(&q));
     }
 
     #[test]
     fn test_join_circuits() {
         let circuits = parse(TEST_INPUT);
-        let circuit_counts = circuits.join_circuits(10);
-        let prod: usize = circuit_counts.iter().take(3).product();
+        let prod: usize = circuits
+            .all_pairs()
+            .join_circuits(10)
+            .iter()
+            .take(3)
+            .product();
         assert_eq!(40, prod);
     }
 
     #[test]
     fn test_join_all_circuits() {
         let circuits = parse(TEST_INPUT);
-        let last_join = circuits.join_all_circuits().unwrap();
-        assert_eq!(25272, last_join.0.x * last_join.1.x);
+        let last_join = circuits.all_pairs().join_all_circuits(&circuits).unwrap();
+        assert_eq!(25272, last_join.0.wall_distance(&last_join.1));
     }
 }
