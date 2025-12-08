@@ -9,9 +9,11 @@ const INPUT: &str = include_str!("input/day8.txt");
 pub fn run() -> (u64, u64) {
     let circuits = parse(INPUT);
     let circuit_counts = circuits.join_circuits(1000);
+    let last_join = circuits.join_all_circuits().unwrap();
+
     (
         circuit_counts.iter().take(3).map(|c| *c as u64).product(),
-        0,
+        (last_join.0.x * last_join.1.x).try_into().unwrap(),
     )
 }
 
@@ -69,6 +71,7 @@ impl FromStr for JunctionBox {
 
 trait Circuits {
     fn join_circuits(&self, num_circuits: usize) -> Vec<usize>;
+    fn join_all_circuits(&self) -> Option<(JunctionBox, JunctionBox)>;
 }
 
 impl Circuits for Vec<JunctionBox> {
@@ -131,6 +134,61 @@ impl Circuits for Vec<JunctionBox> {
         circuit_lens.sort_by_key(|x| Reverse(*x));
         circuit_lens
     }
+
+    fn join_all_circuits(&self) -> Option<(JunctionBox, JunctionBox)> {
+        let mut pairs: Vec<Vec<&JunctionBox>> = self.iter().combinations(2).collect();
+        pairs.sort_by(|p, q| {
+            p[0].distance(&p[1])
+                .partial_cmp(&(q[0].distance(&q[1])))
+                .unwrap()
+        });
+        // for p in &pairs {
+        //     println!("{p:?} distance {}", p[0].distance(&p[1]));
+        // }
+        let mut pairs = pairs.iter();
+        let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
+        loop {
+            // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
+            // println!("{clen:?}");
+            let pair = match pairs.next() {
+                Some(p) => p,
+                None => return None,
+            };
+
+            // println!("Connect pair {pair:?}");
+            let mut existing_circuits = circuits
+                .iter_mut()
+                .enumerate()
+                .filter(|(_, c)| c.contains(pair[0]) || c.contains(pair[1]));
+
+            let c1 = existing_circuits.next();
+            if c1.is_none() {
+                // println!("  New circuit!");
+                circuits.push(HashSet::from([*pair[0], *pair[1]]));
+            } else {
+                let (_, c1) = c1.unwrap();
+                if c1.contains(pair[0]) && c1.contains(pair[1]) {
+                    // println!("  Already in {c1:?}");
+                } else {
+                    let c2 = existing_circuits.next();
+                    if c2.is_none() {
+                        // println!("  Add to {c1:?}");
+                        c1.insert(*pair[0]);
+                        c1.insert(*pair[1]);
+                    } else {
+                        let (idx2, c2) = c2.unwrap();
+                        // println!("  Combine {c1:?} with {c2:?}");
+                        c1.extend(c2.iter());
+                        circuits.remove(idx2);
+                    }
+                }
+            }
+
+            if circuits.len() == 1 && circuits[0].len() == self.len() {
+                return Some((*pair[0], *pair[1]));
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -171,5 +229,12 @@ mod test {
         let circuit_counts = circuits.join_circuits(10);
         let prod: usize = circuit_counts.iter().take(3).product();
         assert_eq!(40, prod);
+    }
+
+    #[test]
+    fn test_join_all_circuits() {
+        let circuits = parse(TEST_INPUT);
+        let last_join = circuits.join_all_circuits().unwrap();
+        assert_eq!(25272, last_join.0.x * last_join.1.x);
     }
 }
