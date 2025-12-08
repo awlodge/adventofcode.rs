@@ -12,12 +12,7 @@ pub fn run() -> (u64, u64) {
     let last_join = connections.join_all_circuits(&circuits).unwrap();
 
     (
-        connections
-            .join_circuits(1000)
-            .iter()
-            .take(3)
-            .map(|c| *c as u64)
-            .product(),
+        connections.join_circuits(1000).product_top_circuits(3) as u64,
         last_join.0.wall_distance(&last_join.1),
     )
 }
@@ -83,8 +78,13 @@ trait JunctionBoxes {
 }
 
 trait Connections {
-    fn join_circuits(&self, num_circuits: usize) -> Vec<usize>;
+    fn join_circuits(&self, num_connections: usize) -> impl Circuits;
     fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)>;
+}
+
+trait Circuits {
+    fn add_connection(&mut self, pair: &Vec<&JunctionBox>);
+    fn product_top_circuits(&self, take: usize) -> usize;
 }
 
 impl JunctionBoxes for Vec<JunctionBox> {
@@ -100,107 +100,80 @@ impl JunctionBoxes for Vec<JunctionBox> {
 }
 
 impl Connections for Vec<Vec<&JunctionBox>> {
-    fn join_circuits(&self, num_circuits: usize) -> Vec<usize> {
-        let mut pairs = self.iter();
+    fn join_circuits(&self, num_connections: usize) -> impl Circuits {
+        // let mut pairs = self.iter();
         let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
-        let mut num_connections = 0;
-        while num_connections < num_circuits {
+        for pair in self.iter().take(num_connections) {
             // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
             // println!("{clen:?}");
-            let pair = pairs.next();
-            if pair.is_none() {
-                break;
-            }
-            let pair = pair.unwrap();
             // println!("Connect pair {pair:?}");
-            num_connections += 1;
-            let mut existing_circuits = circuits
-                .iter_mut()
-                .enumerate()
-                .filter(|(_, c)| c.contains(pair[0]) || c.contains(pair[1]));
-
-            let c1 = existing_circuits.next();
-            if c1.is_none() {
-                // println!("  New circuit!");
-                circuits.push(HashSet::from([*pair[0], *pair[1]]));
-                continue;
-            }
-
-            let (_, c1) = c1.unwrap();
-            if c1.contains(pair[0]) && c1.contains(pair[1]) {
-                // println!("  Already in {c1:?}");
-                continue;
-            }
-
-            let c2 = existing_circuits.next();
-            if c2.is_none() {
-                // println!("  Add to {c1:?}");
-                c1.insert(*pair[0]);
-                c1.insert(*pair[1]);
-                continue;
-            }
-
-            let (idx2, c2) = c2.unwrap();
-            // println!("  Combine {c1:?} with {c2:?}");
-            c1.extend(c2.iter());
-            circuits.remove(idx2);
+            circuits.add_connection(pair);
         }
 
-        let mut circuit_lens: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
-        circuit_lens.sort_by_key(|x| Reverse(*x));
-        circuit_lens
+        circuits
     }
 
     fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)> {
-        let mut pairs = self.iter();
         let mut circuits: Vec<HashSet<JunctionBox>> = Vec::new();
-        loop {
+        for pair in self.iter() {
             // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
             // println!("{clen:?}");
-            let pair = match pairs.next() {
-                Some(p) => p,
-                None => return None,
-            };
-
             // println!("Connect pair {pair:?}");
-            let mut existing_circuits = circuits
-                .iter_mut()
-                .enumerate()
-                .filter(|(_, c)| c.contains(pair[0]) || c.contains(pair[1]));
-
-            let c1 = existing_circuits.next();
-            if c1.is_none() {
-                // println!("  New circuit!");
-                circuits.push(HashSet::from([*pair[0], *pair[1]]));
-            } else {
-                let (_, c1) = c1.unwrap();
-                if c1.contains(pair[0]) && c1.contains(pair[1]) {
-                    // println!("  Already in {c1:?}");
-                } else {
-                    let c2 = existing_circuits.next();
-                    if c2.is_none() {
-                        // println!("  Add to {c1:?}");
-                        c1.insert(*pair[0]);
-                        c1.insert(*pair[1]);
-                    } else {
-                        let (idx2, c2) = c2.unwrap();
-                        // println!("  Combine {c1:?} with {c2:?}");
-                        c1.extend(c2.iter());
-                        circuits.remove(idx2);
-                    }
-                }
-            }
+            circuits.add_connection(pair);
 
             if circuits.len() == 1 && circuits[0].len() == boxes.len() {
                 return Some((*pair[0], *pair[1]));
             }
         }
+
+        None
+    }
+}
+
+impl Circuits for Vec<HashSet<JunctionBox>> {
+    fn add_connection(&mut self, pair: &Vec<&JunctionBox>) {
+        let mut existing_circuits = self
+            .iter_mut()
+            .enumerate()
+            .filter(|(_, c)| c.contains(pair[0]) || c.contains(pair[1]));
+
+        let c1 = existing_circuits.next();
+        if c1.is_none() {
+            // println!("  New circuit!");
+            self.push(HashSet::from([*pair[0], *pair[1]]));
+            return;
+        }
+
+        let (_, c1) = c1.unwrap();
+        if c1.contains(pair[0]) && c1.contains(pair[1]) {
+            // println!("  Already in {c1:?}");
+            return;
+        }
+
+        let c2 = existing_circuits.next();
+        if c2.is_none() {
+            // println!("  Add to {c1:?}");
+            c1.insert(*pair[0]);
+            c1.insert(*pair[1]);
+            return;
+        }
+
+        let (idx2, c2) = c2.unwrap();
+        // println!("  Combine {c1:?} with {c2:?}");
+        c1.extend(c2.iter());
+        self.remove(idx2);
+    }
+
+    fn product_top_circuits(&self, take: usize) -> usize {
+        let mut circuit_lens: Vec<usize> = self.iter().map(|c| c.len()).collect();
+        circuit_lens.sort_by_key(|x| Reverse(*x));
+        circuit_lens.iter().take(take).map(|c| *c).product()
     }
 }
 
 #[cfg(test)]
 mod test {
-    use crate::y2025::day8::{Connections, JunctionBox, JunctionBoxes, parse};
+    use crate::y2025::day8::{Circuits, Connections, JunctionBox, JunctionBoxes, parse};
 
     const TEST_INPUT: &str = "162,817,812
 57,618,57
@@ -236,9 +209,7 @@ mod test {
         let prod: usize = circuits
             .all_pairs()
             .join_circuits(10)
-            .iter()
-            .take(3)
-            .product();
+            .product_top_circuits(3);
         assert_eq!(40, prod);
     }
 
