@@ -65,6 +65,33 @@ impl AddAssign for Point {
     }
 }
 
+#[derive(Debug)]
+pub enum ParsePointError {
+    ParseIntError,
+    InvalidLength,
+}
+
+impl FromStr for Point {
+    type Err = ParsePointError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let vals: Vec<&str> = s.split(',').collect();
+        if vals.len() != 2 {
+            return Err(ParsePointError::InvalidLength);
+        }
+
+        let x: i64 = match vals[0].parse() {
+            Ok(v) => v,
+            Err(_) => return Err(ParsePointError::ParseIntError),
+        };
+        let y: i64 = match vals[1].parse() {
+            Ok(v) => v,
+            Err(_) => return Err(ParsePointError::ParseIntError),
+        };
+        Ok(Point::new(x, y))
+    }
+}
+
 pub enum Direction {
     North,
     NorthEast,
