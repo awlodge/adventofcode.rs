@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use clap::{Parser, command};
 
 pub mod helpers;
@@ -12,6 +14,9 @@ struct Args {
 
     #[arg(short, long, value_parser = clap::value_parser!(u16).range(1..26))]
     day: Option<u16>,
+
+    #[arg(short, long)]
+    build_solution_file: bool,
 }
 
 fn main() {
@@ -27,9 +32,11 @@ fn main() {
         _ => panic!("Year {} not found", args.year),
     };
 
+    let mut solutions: Vec<(u16, u64, u64)> = Vec::new();
     for day in days {
         match run(day as u32) {
             Ok((x, y)) => {
+                solutions.push((day, x, y));
                 println!("{} Day {day}", args.year);
                 println!("  Part 1: {x}");
                 println!("  Part 2: {y}");
@@ -41,6 +48,13 @@ fn main() {
                 );
                 break;
             }
+        }
+    }
+
+    if args.build_solution_file {
+        let mut buffer = File::create(format!("src/y{}/solutions.txt", args.year)).unwrap();
+        for (d, s1, s2) in solutions {
+            writeln!(buffer, "{d},{s1},{s2}").unwrap();
         }
     }
 }

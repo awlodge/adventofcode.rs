@@ -39,7 +39,10 @@ mod test {
         let mut s = HashMap::new();
         for line in SOLUTIONS.split('\n') {
             let line = line.trim();
-            let cols: Vec<u64> = line.split(',').map(|x| x.parse().unwrap()).collect();
+            if line.is_empty() {
+                continue;
+            }
+            let cols: Vec<u64> = line.split(',').map(|x| x.trim().parse().unwrap()).collect();
             let day: u32 = cols[0].try_into().unwrap();
             s.insert(day, (cols[1], cols[2]));
         }
