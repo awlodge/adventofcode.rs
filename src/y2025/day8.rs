@@ -1,4 +1,4 @@
-use std::{num::ParseIntError, str::FromStr};
+use std::{cmp::Reverse, collections::BinaryHeap, num::ParseIntError, str::FromStr};
 
 use itertools::Itertools;
 
@@ -8,8 +8,9 @@ const INPUT: &str = include_str!("input/day8.txt");
 
 pub fn run() -> (u64, u64) {
     let circuits = parse(INPUT);
-    let connections = circuits.all_pairs();
+    let mut connections = circuits.all_pairs();
     let last_join = connections.join_all_circuits(&circuits).unwrap();
+    let mut connections = circuits.all_pairs();
 
     (
         connections.join_circuits(1000).product_top_circuits(3) as u64,
@@ -72,18 +73,39 @@ impl FromStr for JunctionBox {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+struct JunctionBoxConnection {
+    distance: u64,
+    c1: JunctionBox,
+    c2: JunctionBox,
+}
+
+impl JunctionBoxConnection {
+    fn new(c1: &JunctionBox, c2: &JunctionBox) -> Self {
+        let distance = c1.distance(c2);
+        JunctionBoxConnection {
+            distance,
+            c1: *c1,
+            c2: *c2,
+        }
+    }
+}
+
 trait JunctionBoxes {
     fn len(&self) -> usize;
-    fn all_pairs(&self) -> Vec<Vec<&JunctionBox>>;
+    fn all_pairs(&self) -> impl Connections;
 }
 
 trait Connections {
-    fn join_circuits(&self, num_circuits: usize) -> impl Circuits;
-    fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)>;
+    fn join_circuits(&mut self, num_circuits: usize) -> impl Circuits;
+    fn join_all_circuits(
+        &mut self,
+        boxes: &impl JunctionBoxes,
+    ) -> Option<(JunctionBox, JunctionBox)>;
 }
 
 trait Circuits {
-    fn add_connection(&mut self, pair: &Vec<&JunctionBox>);
+    fn add_connection(&mut self, conn: &JunctionBoxConnection);
     fn product_top_circuits(&mut self, take: usize) -> usize;
 }
 
@@ -92,47 +114,50 @@ impl JunctionBoxes for Vec<JunctionBox> {
         self.len()
     }
 
-    fn all_pairs(&self) -> Vec<Vec<&JunctionBox>> {
-        let mut pairs: Vec<Vec<&JunctionBox>> = self.iter().combinations(2).collect();
-        pairs.sort_by_key(|p| p[0].distance(&p[1]));
-        pairs
+    fn all_pairs(&self) -> impl Connections {
+        let mut connections = BinaryHeap::new();
+        for c in self
+            .iter()
+            .combinations(2)
+            .map(|pair| JunctionBoxConnection::new(pair[0], pair[1]))
+        {
+            connections.push(Reverse(c));
+        }
+        connections
     }
 }
 
-impl Connections for Vec<Vec<&JunctionBox>> {
-    fn join_circuits(&self, num_circuits: usize) -> impl Circuits {
+impl Connections for BinaryHeap<Reverse<JunctionBoxConnection>> {
+    fn join_circuits(&mut self, num_circuits: usize) -> impl Circuits {
         // let mut pairs = self.iter();
         let mut circuits: DisjointSet<JunctionBox> = DisjointSet::new();
-        for pair in self.iter().take(num_circuits) {
-            // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
-            // println!("{clen:?}");
-            // println!("Connect pair {pair:?}");
-            circuits.add_connection(pair);
+        for _ in 0..num_circuits {
+            let conn = self.pop().unwrap().0;
+            circuits.add_connection(&conn);
         }
 
         circuits
     }
 
-    fn join_all_circuits(&self, boxes: &impl JunctionBoxes) -> Option<(JunctionBox, JunctionBox)> {
+    fn join_all_circuits(
+        &mut self,
+        boxes: &impl JunctionBoxes,
+    ) -> Option<(JunctionBox, JunctionBox)> {
         let mut circuits: DisjointSet<JunctionBox> = DisjointSet::new();
-        for pair in self.iter() {
-            // let clen: Vec<usize> = circuits.iter().map(|c| c.len()).collect();
-            // println!("{clen:?}");
-            // println!("Connect pair {pair:?}");
-            circuits.add_connection(pair);
+        loop {
+            let conn = self.pop()?.0;
+            circuits.add_connection(&conn);
 
             if circuits.len() == 1 && circuits.iter().next().unwrap().len() == boxes.len() {
-                return Some((*pair[0], *pair[1]));
+                return Some((conn.c1, conn.c2));
             }
         }
-
-        None
     }
 }
 
 impl Circuits for DisjointSet<JunctionBox> {
-    fn add_connection(&mut self, pair: &Vec<&JunctionBox>) {
-        self.insert(pair[0], pair[1])
+    fn add_connection(&mut self, conn: &JunctionBoxConnection) {
+        self.insert(&conn.c1, &conn.c2)
     }
 
     fn product_top_circuits(&mut self, take: usize) -> usize {
