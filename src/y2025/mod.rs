@@ -1,4 +1,5 @@
 mod day1;
+mod day10;
 mod day2;
 mod day3;
 mod day4;
@@ -19,6 +20,7 @@ pub fn run(day: u32) -> Result<(u64, u64), u32> {
         7 => Ok(day7::run()),
         8 => Ok(day8::run()),
         9 => Ok(day9::run()),
+        10 => Ok(day10::run()),
         _ => Err(day),
     }
 }
@@ -55,6 +57,7 @@ mod test {
     #[case(7)]
     #[case(8)]
     #[case(9)]
+    #[case(10)]
     fn test_solution(solutions: HashMap<u32, (u64, u64)>, #[case] day: u32) {
         let (exp_s1, exp_s2) = solutions.get(&day).unwrap();
         let (s1, s2) = run(day).unwrap();
