@@ -8,28 +8,44 @@ use crate::helpers::parse::parse_lines;
 const INPUT: &str = include_str!("input/day10.txt");
 
 pub fn run() -> (u64, u64) {
-    (sum_min_presses(INPUT), 0)
+    let mut machines: Vec<Machine> = Machines::parse(INPUT);
+    (
+        machines.sum_min_presses(),
+        0, // machines.sum_min_presses_joltage(),
+    )
 }
 
-fn parse(input: &str) -> impl Iterator<Item = Machine> {
-    parse_lines(input)
+trait Machines {
+    fn parse(input: &str) -> Self;
+    fn sum_min_presses(&mut self) -> u64;
+    fn sum_min_presses_joltage(&mut self) -> u64;
 }
 
-fn sum_min_presses(input: &str) -> u64 {
-    let mut machines: Vec<Machine> = parse(input).collect();
-    let mut s: u64 = 0;
-    for machine in machines.iter_mut() {
-        s += machine.find_min_presses().unwrap() as u64;
+impl Machines for Vec<Machine> {
+    fn parse(input: &str) -> Vec<Machine> {
+        parse_lines(input).collect()
     }
-    s
+
+    fn sum_min_presses(&mut self) -> u64 {
+        self.iter_mut()
+            .map(|m| m.find_min_presses().unwrap() as u64)
+            .sum()
+    }
+
+    fn sum_min_presses_joltage(&mut self) -> u64 {
+        self.iter_mut()
+            .map(|m| m.find_min_presses_joltage().unwrap() as u64)
+            .sum()
+    }
 }
 
 #[derive(Debug)]
 struct Machine {
     lights: u16,
-    target: u16,
+    target_lights: u16,
     buttons: Vec<u16>,
     joltages: Vec<u32>,
+    target_joltages: Vec<u32>,
 }
 
 impl Machine {
@@ -37,12 +53,29 @@ impl Machine {
         self.lights = self.lights ^ self.buttons[idx];
     }
 
+    fn push_button_joltage(&mut self, idx: usize) {
+        let mut button = self.buttons[idx];
+        for i in 0..self.joltages.len() {
+            if button & 1 == 1 {
+                self.joltages[i] += 1
+            }
+            button = button >> 1;
+        }
+    }
+
     fn reset(&mut self) {
         self.lights = 0;
+        let mut new_joltages: Vec<u32> = Vec::with_capacity(self.joltages.len());
+        new_joltages.resize(self.joltages.len(), 0);
+        self.joltages = new_joltages;
     }
 
     fn is_at_target(&self) -> bool {
-        self.lights == self.target
+        self.lights == self.target_lights
+    }
+
+    fn is_at_target_joltage(&self) -> bool {
+        self.joltages == self.target_joltages
     }
 
     fn find_min_presses(&mut self) -> Option<usize> {
@@ -58,6 +91,22 @@ impl Machine {
             }
         }
         None
+    }
+
+    fn find_min_presses_joltage(&mut self) -> Option<usize> {
+        let mut idx: usize = 0;
+        loop {
+            for presses in (0..self.buttons.len()).combinations_with_replacement(idx) {
+                for b in presses {
+                    self.push_button_joltage(b);
+                }
+                if self.is_at_target_joltage() {
+                    return Some(idx);
+                }
+                self.reset();
+            }
+            idx += 1;
+        }
     }
 }
 
@@ -104,7 +153,7 @@ impl FromStr for Machine {
             buttons.push(b);
         }
 
-        let joltages: Vec<u32> = captures
+        let target_joltages: Vec<u32> = captures
             .name("joltages")
             .unwrap()
             .as_str()
@@ -112,11 +161,15 @@ impl FromStr for Machine {
             .map(|x| x.parse::<u32>().unwrap())
             .collect();
 
+        let mut joltages: Vec<u32> = Vec::with_capacity(target_joltages.len());
+        joltages.resize(target_joltages.len(), 0);
+
         Ok(Machine {
             lights: 0,
-            target,
+            target_lights: target,
             buttons,
             joltages,
+            target_joltages,
         })
     }
 }
@@ -125,7 +178,7 @@ impl FromStr for Machine {
 mod test {
     use rstest::rstest;
 
-    use crate::y2025::day10::{Machine, sum_min_presses};
+    use crate::y2025::day10::{Machine, Machines};
 
     const TEST_INPUT: &str = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
 [...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}
@@ -136,12 +189,12 @@ mod test {
         let inp = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}";
         let machine: Machine = inp.parse().unwrap();
         assert_eq!(0, machine.lights);
-        assert_eq!(0b0110, machine.target);
+        assert_eq!(0b0110, machine.target_lights);
         assert_eq!(
             Vec::from(&[0b1000, 0b1010, 0b0100, 0b1100, 0b0101, 0b0011]),
             machine.buttons
         );
-        assert_eq!(Vec::from(&[3, 5, 4, 7]), machine.joltages);
+        assert_eq!(Vec::from(&[3, 5, 4, 7]), machine.target_joltages);
     }
 
     #[test]
@@ -173,6 +226,32 @@ mod test {
 
     #[test]
     fn test_sum_min_presses() {
-        assert_eq!(7, sum_min_presses(TEST_INPUT))
+        let mut machines: Vec<Machine> = Machines::parse(TEST_INPUT);
+        assert_eq!(7, machines.sum_min_presses());
+    }
+
+    #[test]
+    fn test_push_button_joltage() {
+        let inp = "[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}";
+        let mut machine: Machine = inp.parse().unwrap();
+        for b in &[0, 1, 1, 1, 3, 3, 3, 4, 5, 5] {
+            machine.push_button_joltage(*b);
+        }
+        assert_eq!(machine.target_joltages, machine.joltages);
+    }
+
+    #[rstest]
+    #[case("[.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}", 10)]
+    #[case("[...#.] (0,2,3,4) (2,3) (0,4) (0,1,2) (1,2,3,4) {7,5,12,7,2}", 12)]
+    #[case("[.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}", 11)]
+    fn test_find_min_presses_joltage(#[case] input: &str, #[case] min_presses: usize) {
+        let mut machine: Machine = input.parse().unwrap();
+        assert_eq!(min_presses, machine.find_min_presses_joltage().unwrap());
+    }
+
+    #[test]
+    fn test_sum_min_presses_joltage() {
+        let mut machines: Vec<Machine> = Machines::parse(TEST_INPUT);
+        assert_eq!(33, machines.sum_min_presses_joltage());
     }
 }
